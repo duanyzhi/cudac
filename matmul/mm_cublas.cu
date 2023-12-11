@@ -4,19 +4,18 @@
 #include "fun.h"
 
 // cuBLAS SGEMM 
-void run_mm_cuda_cublas(float* hA, float* hB, float* hC, int M, int N, int K) {
+void run_mm_cuda_cublas(float* hA, float* hB, float* hC, int M, int K, int N) {
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
-
 
   cudaError_t cudaStat;  // cudaMalloc status
   cublasStatus_t stat;   // cuBLAS functions status
   cublasHandle_t handle; // cuBLAS context
 
-  size_t size_A = M * N * sizeof(float);
-  size_t size_B = N * K * sizeof(float);
-  size_t size_C = M * K * sizeof(float);
+  size_t size_A = M * K * sizeof(float);
+  size_t size_B = K * N * sizeof(float);
+  size_t size_C = M * N * sizeof(float);
 
   float* dA;
   float* dB;
@@ -35,10 +34,10 @@ void run_mm_cuda_cublas(float* hA, float* hB, float* hC, int M, int N, int K) {
   cudaMemcpy((void*)dB, (void*)hB, size_B, cudaMemcpyHostToDevice);
 
   cudaEventRecord(start, 0);
-  // m -> M, n -> K, k -> N
+  // m -> M, n -> N, k -> K
   // ref: https://docs.nvidia.com/cuda/cublas/index.html#cublas-t-gemmex
-  stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, K, M, N, &alpha, dB, K,
-                     dA, N, &beta, dC, K);
+  stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, dB, N,
+                     dA, K, &beta, dC, N);
 
   cudaEventRecord(stop, 0);
   cudaEventSynchronize( stop );
@@ -54,5 +53,5 @@ void run_mm_cuda_cublas(float* hA, float* hB, float* hC, int M, int N, int K) {
 
   float milliseconds = 0;
   cudaEventElapsedTime(&milliseconds, start, stop);
-  printf("cuda mm cublas time for [%d, %d, %d] is %f ms.\n", M, N, K, milliseconds);
+  printf("cuda mm cublas time for [%d, %d, %d] is %f ms.\n", M, K, N, milliseconds);
 }

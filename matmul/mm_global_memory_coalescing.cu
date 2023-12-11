@@ -4,35 +4,32 @@
 
 #define BLOCK_SIZE 32
 
-__global__ void mm_cuda_memory_coalescing(float* A, float* B, float* C, int M, int N, int K) {
-  // int row = blockDim.x * blockIdx.x + threadIdx.x;
-  // int col = blockDim.y * blockIdx.y + threadIdx.y;
-
+__global__ void mm_cuda_memory_coalescing(float* A, float* B, float* C, int M, int K, int N) {
   const int row = blockIdx.x * BLOCK_SIZE + (threadIdx.x / BLOCK_SIZE);
   const int col = blockIdx.y * BLOCK_SIZE + (threadIdx.x % BLOCK_SIZE);
 
   if (row >= M) return;
-  if (col >= K) return;
+  if (col >= N) return;
 
   // printf("bidx %d, tx %d, bixy %d, ty %d\n", blockIdx.x, threadIdx.x, blockIdx.y, threadIdx.y);
   // printf("id x y %d, %d\n", row, col);
   float sum_c = 0;
-  for (int i = 0; i < N; ++i) {
-    sum_c += A[row * N + i] *
-             B[col + i * K];
+  for (int i = 0; i < K; ++i) {
+    sum_c += A[row * K + i] *
+             B[col + i * N];
   }
-  C[row * K + col] = sum_c;
+  C[row * N + col] = sum_c;
 }
 
 
-void run_mm_cuda_memory_coalescing(float* hA, float* hB, float* hC, int M, int N, int K) {
+void run_mm_cuda_memory_coalescing(float* hA, float* hB, float* hC, int M, int K, int N) {
   cudaEvent_t start, stop;
   cudaEventCreate(&start);
   cudaEventCreate(&stop);
 
-  size_t size_A = M * N * sizeof(float);
-  size_t size_B = N * K * sizeof(float);
-  size_t size_C = M * K * sizeof(float);
+  size_t size_A = M * K * sizeof(float);
+  size_t size_B = K * N * sizeof(float);
+  size_t size_C = M * N * sizeof(float);
 
   float* dA;
   float* dB;
@@ -50,7 +47,7 @@ void run_mm_cuda_memory_coalescing(float* hA, float* hB, float* hC, int M, int N
   dim3 dimBlock(BLOCK_SIZE * BLOCK_SIZE);
   dim3 dimGrid((M + BLOCK_SIZE - 1) / BLOCK_SIZE,
                (K + BLOCK_SIZE - 1) / BLOCK_SIZE);
-  mm_cuda_memory_coalescing<<<dimGrid, dimBlock>>>(dA, dB, dC, M, N, K);
+  mm_cuda_memory_coalescing<<<dimGrid, dimBlock>>>(dA, dB, dC, M, K, N);
 
   // wait for synchronize
   cudaDeviceSynchronize();
@@ -63,7 +60,7 @@ void run_mm_cuda_memory_coalescing(float* hA, float* hB, float* hC, int M, int N
   
   float milliseconds = 0;
   cudaEventElapsedTime(&milliseconds, start, stop);
-  printf("cuda mm gpu memory coalescing time for [%d, %d, %d] is %f ms.\n", M, N, K, milliseconds);
+  printf("cuda mm gpu memory coalescing time for [%d, %d, %d] is %f ms.\n", M, K, N, milliseconds);
 
   cudaFree(dA);
   cudaFree(dB);
