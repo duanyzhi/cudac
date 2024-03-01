@@ -33,11 +33,18 @@ void run_mm_cuda_cublas(float* hA, float* hB, float* hC, int M, int K, int N) {
   cudaMemcpy((void*)dA, (void*)hA, size_A, cudaMemcpyHostToDevice);
   cudaMemcpy((void*)dB, (void*)hB, size_B, cudaMemcpyHostToDevice);
 
-  cudaEventRecord(start, 0);
   // m -> M, n -> N, k -> K
   // ref: https://docs.nvidia.com/cuda/cublas/index.html#cublas-t-gemmex
-  stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, dB, N,
+  // waraup
+  cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, dB, N,
                      dA, K, &beta, dC, N);
+
+
+  cudaEventRecord(start, 0);
+  for (int i = 0; i < 10; ++i) {
+    stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &alpha, dB, N,
+                     dA, K, &beta, dC, N);
+  }
 
   cudaEventRecord(stop, 0);
   cudaEventSynchronize( stop );
@@ -53,5 +60,5 @@ void run_mm_cuda_cublas(float* hA, float* hB, float* hC, int M, int K, int N) {
 
   float milliseconds = 0;
   cudaEventElapsedTime(&milliseconds, start, stop);
-  printf("cuda mm cublas time for [%d, %d, %d] is %f ms.\n", M, K, N, milliseconds);
+  printf("cuda mm cublas time for [%d, %d, %d] is %f ms.\n", M, K, N, milliseconds / 10);
 }

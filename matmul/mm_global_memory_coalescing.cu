@@ -1,8 +1,9 @@
 #include "fun.h"
 #include <cuda_runtime.h>
 #include <stdio.h>
+#include <iostream>
 
-#define BLOCK_SIZE 32
+#define BLOCK_SIZE 16
 
 __global__ void mm_cuda_memory_coalescing(float* A, float* B, float* C, int M, int K, int N) {
   const int row = blockIdx.x * BLOCK_SIZE + (threadIdx.x / BLOCK_SIZE);
@@ -11,8 +12,7 @@ __global__ void mm_cuda_memory_coalescing(float* A, float* B, float* C, int M, i
   if (row >= M) return;
   if (col >= N) return;
 
-  // printf("bidx %d, tx %d, bixy %d, ty %d\n", blockIdx.x, threadIdx.x, blockIdx.y, threadIdx.y);
-  // printf("id x y %d, %d\n", row, col);
+  //printf("bidx %d, tx %d, bidy %d, ty %d, row: %d, col: %d.\n", blockIdx.x, threadIdx.x, blockIdx.y, threadIdx.y, row, col);
   float sum_c = 0;
   for (int i = 0; i < K; ++i) {
     sum_c += A[row * K + i] *
@@ -48,6 +48,7 @@ void run_mm_cuda_memory_coalescing(float* hA, float* hB, float* hC, int M, int K
   dim3 dimGrid((M + BLOCK_SIZE - 1) / BLOCK_SIZE,
                (K + BLOCK_SIZE - 1) / BLOCK_SIZE);
   mm_cuda_memory_coalescing<<<dimGrid, dimBlock>>>(dA, dB, dC, M, K, N);
+  std::cout << "grid x " << dimGrid.x << " " << dimGrid.y << " " << dimBlock.x << " " << dimBlock.y << "\n";
 
   // wait for synchronize
   cudaDeviceSynchronize();

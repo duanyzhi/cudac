@@ -70,43 +70,43 @@ int main(int argc, char* argv[]) {
     std::cout << "cpu time for matrix [" << M << ", " << K << ", " << N << "] is " << duration.count() << " ms." << std::endl;
   }
 
-  // matmul cuda native
-  float* hC_naive = (float*)malloc(size_C);
-  run_mm_cuda_naive(hA, hB, hC_naive, M, K, N);
-  compute_error("naive: ", hC, hC_naive, M * N);
-
   // cuda matmul cublas
-  float* hC_cublas = (float*)malloc(size_C);
-  run_mm_cuda_cublas(hA, hB, hC_cublas, M, K, N);
-  compute_error("cublas: ", hC, hC_cublas, M * N);
+  //float* hC_cublas = (float*)malloc(size_C);
+  //run_mm_cuda_cublas(hA, hB, hC_cublas, M, K, N);
+  // compute_error("cublas: ", hC, hC_cublas, M * N);
 
-  // cuda memory coalescing
+  //  // matmul cuda native
+  //  float* hC_naive = (float*)malloc(size_C);
+  //  run_mm_cuda_naive(hA, hB, hC_naive, M, K, N);
+  //  compute_error("naive: ", hC_cublas, hC_naive, M * N);
+
+  //  // cuda memory coalescing
   float* hC_coalescing = (float*)malloc(size_C);
   run_mm_cuda_memory_coalescing(hA, hB, hC_coalescing, M, K, N);
-  compute_error("memory coalescing: ", hC, hC_coalescing, M * N);
+  //compute_error("memory coalescing: ", hC_cublas, hC_coalescing, M * N);
 
-  // sub matrix
-  float* hC_subMatrix = (float*)malloc(size_C);
-  run_mm_cuda_sub_mm_shared_memory(hA, hB, hC_subMatrix, M, K, N);
-  compute_error("memory subMatrix: ", hC, hC_subMatrix, M * N);
+  //  // sub matrix
+  //  float* hC_subMatrix = (float*)malloc(size_C);
+  //  run_mm_cuda_sub_mm_shared_memory(hA, hB, hC_subMatrix, M, K, N);
+  //  compute_error("memory subMatrix: ", hC_cublas, hC_subMatrix, M * N);
 
-  // check outputs
-  if (M <= 50 && K <= 50 && N <= 50) {
-    printMatrix("A: ", M, K, hA);
-    printMatrix("B: ", K, N, hB);
-    printMatrix("host C: ", M, N, hC);
-    printMatrix("naive cuda: ", M, N, hC_naive);
-    printMatrix("cublas: ", M, N, hC_cublas);
-    printMatrix("global memory coalescing: ", M, N, hC_coalescing);
-    printMatrix("sub Matrix: ", M, N, hC_subMatrix);
-  }
+  //  // check outputs
+  //  if (M <= 50 && K <= 50 && N <= 50) {
+  //    printMatrix("A: ", M, K, hA);
+  //    printMatrix("B: ", K, N, hB);
+  //    printMatrix("host C: ", M, N, hC);
+  //    printMatrix("naive cuda: ", M, N, hC_naive);
+  //    printMatrix("cublas: ", M, N, hC_cublas);
+  //    printMatrix("global memory coalescing: ", M, N, hC_coalescing);
+  //    printMatrix("sub Matrix: ", M, N, hC_subMatrix);
+  //  }
  
   // free host malloc
   free(hA);
   free(hB);
   free(hC);
-  free(hC_naive);
-  free(hC_cublas);
+  //free(hC_naive);
+  //free(hC_cublas);
   free(hC_coalescing);
-  free(hC_subMatrix);
+  //free(hC_subMatrix);
 }
