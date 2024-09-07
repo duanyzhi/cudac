@@ -46,6 +46,7 @@ void run_mm_cuda_cublas(float* hA, float* hB, float* hC, int M, int K, int N) {
                      dA, K, &beta, dC, N);
   }
 
+
   cudaEventRecord(stop, 0);
   cudaEventSynchronize( stop );
 

@@ -71,14 +71,14 @@ int main(int argc, char* argv[]) {
   }
 
   // cuda matmul cublas
-  //float* hC_cublas = (float*)malloc(size_C);
-  //run_mm_cuda_cublas(hA, hB, hC_cublas, M, K, N);
-  // compute_error("cublas: ", hC, hC_cublas, M * N);
+  float* hC_cublas = (float*)malloc(size_C);
+  run_mm_cuda_cublas(hA, hB, hC_cublas, M, K, N);
+  compute_error("cublas: ", hC, hC_cublas, M * N);
 
   //  // matmul cuda native
-  //  float* hC_naive = (float*)malloc(size_C);
-  //  run_mm_cuda_naive(hA, hB, hC_naive, M, K, N);
-  //  compute_error("naive: ", hC_cublas, hC_naive, M * N);
+  float* hC_naive = (float*)malloc(size_C);
+  run_mm_cuda_naive(hA, hB, hC_naive, M, K, N);
+  //compute_error("naive: ", hC_cublas, hC_naive, M * N);
 
   //  // cuda memory coalescing
   float* hC_coalescing = (float*)malloc(size_C);
@@ -86,9 +86,9 @@ int main(int argc, char* argv[]) {
   //compute_error("memory coalescing: ", hC_cublas, hC_coalescing, M * N);
 
   //  // sub matrix
-  //  float* hC_subMatrix = (float*)malloc(size_C);
-  //  run_mm_cuda_sub_mm_shared_memory(hA, hB, hC_subMatrix, M, K, N);
-  //  compute_error("memory subMatrix: ", hC_cublas, hC_subMatrix, M * N);
+  float* hC_subMatrix = (float*)malloc(size_C);
+  run_mm_cuda_sub_mm_shared_memory(hA, hB, hC_subMatrix, M, K, N);
+  //compute_error("memory subMatrix: ", hC_cublas, hC_subMatrix, M * N);
 
   //  // check outputs
   //  if (M <= 50 && K <= 50 && N <= 50) {
@@ -105,8 +105,8 @@ int main(int argc, char* argv[]) {
   free(hA);
   free(hB);
   free(hC);
-  //free(hC_naive);
+  free(hC_naive);
   //free(hC_cublas);
   free(hC_coalescing);
-  //free(hC_subMatrix);
+  free(hC_subMatrix);
 }
