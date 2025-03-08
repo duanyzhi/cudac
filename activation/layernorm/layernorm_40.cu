@@ -4,6 +4,7 @@
 #include <vector>
 #include <ATen/AccumulateType.h>
 #include <iostream>
+#include "pybind.h"
 
 static const int NUM_STREAMS = 8;
 static cudaStream_t streams[NUM_STREAMS];
@@ -130,7 +131,7 @@ __global__ void layernorm_streamed_kernel(
     }
 }
 
-torch::Tensor layernorm_forward(torch::Tensor x, torch::Tensor weight, torch::Tensor bias, double eps = 1e-5) {
+torch::Tensor layernorm_forward(torch::Tensor x, torch::Tensor weight, torch::Tensor bias, double eps) {
     create_streams();
 
     auto output = torch::empty_like(x);
@@ -192,12 +193,4 @@ torch::Tensor layernorm_forward(torch::Tensor x, torch::Tensor weight, torch::Te
         cudaStreamSynchronize(streams[i]);
     }
     return output;
-}
-
-
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("forward", &layernorm_forward, "LayerNorm forward (CUDA)",
-          py::arg("x"), py::arg("weight"), py::arg("bias"), py::arg("eps") = 1e-5);
-    // Add cleanup function for streams
-    m.def("cleanup", &destroy_streams, "Cleanup CUDA streams");
 }

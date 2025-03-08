@@ -27,14 +27,29 @@ class Model(nn.Module):
         """
         return self.ln(x)
 
-batch_size = 16
-features = 64
-dim1 = 256
-dim2 = 256
+    @torch.compile(dynamic=True)
+    def compile_forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Applies Layer Normalization to the input tensor.
 
-def get_inputs():
-    x = torch.randn(batch_size, features, dim1, dim2)
-    return [x]
+        Args:
+            x (torch.Tensor): Input tensor of shape (*, normalized_shape).
 
-def get_init_inputs():
-    return [(features, dim1, dim2)]
+        Returns:
+            torch.Tensor: Output tensor with Layer Normalization applied, same shape as input.
+        """
+        return self.ln(x)
+
+
+
+# batch_size = 16
+# features = 64
+# dim1 = 256
+# dim2 = 256
+# 
+# def get_inputs():
+#     x = torch.randn(batch_size, features, dim1, dim2)
+#     return [x]
+# 
+# def get_init_inputs():
+#     return [(features, dim1, dim2)]
