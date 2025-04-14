@@ -57,8 +57,8 @@ __global__ void wmma_kernel(half *a, half *b, float *c, int m, int n, int k) {
 }
 
 int main() {
-    const int M = 4096, N = 4096, K = 4096;
-    // const int M = 16, N = 16, K = 16;
+    //const int M = 4096, N = 4096, K = 4096;
+    const int M = 16, N = 16, K = 16;
     size_t a_size = M * K * sizeof(half);
     size_t b_size = K * N * sizeof(half);
     size_t c_size = M * N * sizeof(float);
@@ -84,13 +84,13 @@ int main() {
     cudaMemcpy(d_b, h_b, b_size, cudaMemcpyHostToDevice);
 
     // Launch kernel
-    // dim3 grid(1);
-    // dim3 block(32);  // One warp
-    // wmma_kernel<<<grid, block>>>(d_a, d_b, d_c, M, N, K);
+    dim3 grid(1);
+    dim3 block(32);  // One warp
+    wmma_kernel<<<grid, block>>>(d_a, d_b, d_c, M, N, K);
 
-    dim3 gridDim(N / WMMA_N, M / WMMA_M);  // 分块网格维度
-    dim3 blockDim(WMMA_N, WMMA_M);         // 每个块的线程数
-    wmma_kernel_v1<<<gridDim, blockDim>>>(d_a, d_b, d_c, M, N, K);
+    // dim3 gridDim(N / WMMA_N, M / WMMA_M);  // 分块网格维度
+    // dim3 blockDim(WMMA_N, WMMA_M);         // 每个块的线程数
+    // wmma_kernel_v1<<<gridDim, blockDim>>>(d_a, d_b, d_c, M, N, K);
 
     // Copy result back
     cudaMemcpy(h_c, d_c, c_size, cudaMemcpyDeviceToHost);
@@ -99,7 +99,7 @@ int main() {
     bool valid = true;
     for(int i = 0; i < M*N; i++) {
         std::cout << h_c[i] << " \n";
-        if(fabs(h_c[i] - 4096.0f) > 1e-3) {
+        if(fabs(h_c[i] - 16.0f) > 1e-3) {
             valid = false;
             break;
         }
