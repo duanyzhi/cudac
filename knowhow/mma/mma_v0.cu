@@ -27,6 +27,7 @@ __global__ void wmma_kernel(half *a, half *b, float *c, int m, int n, int k) {
 
     // Matrix multiply-accumulate
     wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);
+    // asm volatile("wmma.mma.sync.aligned.row.row.m16n16k16.f32.f32 {%f2, %f3, %f4, %f5, %f6, %f7, %f8, %f9}, {%r3, %r4, %r5, %r6, %r7, %r8, %r9, %r10}, {%r11, %r12, %r13, %r14, %r15, %r16, %r17, %r18}, {%f1, %f1, %f1, %f1, %f1, %f1, %f1, %f1};");
 
     // Store result
     wmma::store_matrix_sync(c, c_frag, n, wmma::mem_row_major);
