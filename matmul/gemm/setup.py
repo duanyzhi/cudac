@@ -7,7 +7,7 @@ setup(
     ext_modules=[
         CppExtension(
             name='flash_fusion',  # This defines TORCH_EXTENSION_NAME
-            sources=['gemm_v1.cu']
+            sources=['gemm_v3.cu']
             # extra_compile_args= {
             #     'nvcc': [
             #         "arch=compute_89"
