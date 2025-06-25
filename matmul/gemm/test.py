@@ -21,12 +21,12 @@ class Linear(torch.nn.Module):
     def forward(self, x):
        return self.ln(x)
 
-model = Linear(64, 64)
-x = torch.randn([128, 64], device="cuda", dtype=torch.half)
+model = Linear(128, 128)
+x = torch.randn([128, 128], device="cuda", dtype=torch.half)
 
-# for _ in range(10):
-#    torch_C = model(x)
-   # flash_C = flash_fusion.gemm(x, model.ln.weight)
+for _ in range(1):
+   torch_C = model(x)
+   flash_C = flash_fusion.gemm(x, model.ln.weight)
 
 torch.cuda.synchronize()
 # print(C, flash_C)
@@ -53,10 +53,10 @@ start.record()
 # print(x)
 # print(x[16:, ...])
 # print(model.ln.weight[16:, 16:])
-flash_C = flash_fusion.gemm(x, model.ln.weight)
+# flash_C = flash_fusion.gemm(x, model.ln.weight)
 
-# for _ in range(100):
-#    flash_C = flash_fusion.gemm(x, model.ln.weight)
+for _ in range(1):
+   flash_C = flash_fusion.gemm(x, model.ln.weight)
 
 end.record()
 torch.cuda.synchronize()
