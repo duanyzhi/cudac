@@ -22,26 +22,27 @@ class Linear(torch.nn.Module):
        return self.ln(x)
 
 model = Linear(64, 64)
-x = torch.randn([128, 64], device="cuda", dtype=torch.half)
+x = torch.randn([64, 64], device="cuda", dtype=torch.half)
 
-# for _ in range(10):
-#    torch_C = model(x)
-   # flash_C = flash_fusion.gemm(x, model.ln.weight)
+for _ in range(1):
+   torch_C = model(x)
+   flash_C = flash_fusion.gemm(x, model.ln.weight)
 
 torch.cuda.synchronize()
-# print(C, flash_C)
+# print(torch_C, flash_C)
 # print(torch.allclose(C, flash_C.half(), atol=0.01, rtol=0.01))
 
 start_torch = torch.cuda.Event(enable_timing=True)
 end_torch = torch.cuda.Event(enable_timing=True)
 start_torch.record()
 
-for _ in range(1):
+for _ in range(100):
    torch_C = model(x)
    # torch_C = torch.nn.functional.linear(A, B)
 
 end_torch.record()
 torch.cuda.synchronize()
+
 e2e_time_torch = start_torch.elapsed_time(end_torch) / 100 / 1000
 print("avg pytorch linear sync time: ", start_torch.elapsed_time(end_torch) / 100, " ms.")
 
@@ -53,13 +54,14 @@ start.record()
 # print(x)
 # print(x[16:, ...])
 # print(model.ln.weight[16:, 16:])
-flash_C = flash_fusion.gemm(x, model.ln.weight)
+# flash_C = flash_fusion.gemm(x, model.ln.weight)
 
-# for _ in range(100):
-#    flash_C = flash_fusion.gemm(x, model.ln.weight)
+for _ in range(100):
+  flash_C = flash_fusion.gemm(x, model.ln.weight)
 
 end.record()
 torch.cuda.synchronize()
+
 e2e_time = start.elapsed_time(end) / 100 / 1000
 print("avg flash linear sync time: ", start.elapsed_time(end) / 100, " ms.")
 

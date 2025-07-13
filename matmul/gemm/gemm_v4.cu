@@ -13,7 +13,7 @@
 #define OFFSET(row, col, ld) ((row) * (ld) + (col))
 
 template <int BM, int BN, int BK, int WMMA_M, int WMMA_N, int WMMA_K, int THREADNUM>
-__global__ void gemm_kernel_v3(const half* __restrict__ a, const half* __restrict__ b,
+__global__ void gemm_kernel_v4(const half* __restrict__ a, const half* __restrict__ b,
                           const half* __restrict__ bias, float* __restrict__ c, const int M,
                           const int N, const int K) {
   const int blockId = blockIdx.y * gridDim.x + blockIdx.x;
@@ -225,7 +225,7 @@ __global__ void gemm_kernel_v3(const half* __restrict__ a, const half* __restric
   for (int id = 0; id < store_cycle; ++id) {
     c[gmem_store_ptr + smem_row * N + smem_col + id] = smem_float[smem_row * BN + smem_col + id];
   }
-  __syncthreads();
+  // __syncthreads();
 }
 
 at::Tensor gemm_forward(at::Tensor a, at::Tensor b) {
@@ -240,20 +240,20 @@ at::Tensor gemm_forward(at::Tensor a, at::Tensor b) {
         torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCUDA)
     );
 
-    constexpr int BM = 64;
-    constexpr int BN = 64;
-    constexpr int BK = 64;
+    constexpr int BM = 32;
+    constexpr int BN = 32;
+    constexpr int BK = 32;
     constexpr int WMMA_M = 16;
     constexpr int WMMA_N = 16;
     constexpr int WMMA_K = 16;
-    constexpr int thread_num = 128;
+    constexpr int thread_num = 64;
 
     dim3 GridDim(DIV_UP(N, BN), DIV_UP(M, BM));  // 8 * 8
     dim3 BlockDim(thread_num, 1);
     // printf("grid: %d, %d: %d.\n", GridDim.x, GridDim.y, BlockDim.x);
     float* c_ptr = reinterpret_cast<float*>(c.data_ptr());
 
-    gemm_kernel_v3<BM, BN, BK, WMMA_M, WMMA_N, WMMA_K, thread_num>
+    gemm_kernel_v4<BM, BN, BK, WMMA_M, WMMA_N, WMMA_K, thread_num>
         <<<GridDim, BlockDim, 0, stream>>>(
                reinterpret_cast<__half*>(a.data_ptr<at::Half>()),
                reinterpret_cast<__half*>(b.data_ptr<at::Half>()),
